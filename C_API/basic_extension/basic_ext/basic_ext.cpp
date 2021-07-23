@@ -180,7 +180,7 @@ namespace Python::BasicExtension
 
     PyDoc_STRVAR(module_doc, "This text is dummy document of module");
 
-    struct PyModuleDef basicext_module = {
+    PyModuleDef basicext_module = {
         PyModuleDef_HEAD_INIT,
         "basicext",
         module_doc,
