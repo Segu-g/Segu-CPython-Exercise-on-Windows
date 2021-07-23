@@ -3,8 +3,8 @@ from pathlib import Path
 
 ext_modules = [
     Extension(
-        name="dynamicext",
-        sources=[str(Path(__file__).parent / "dynamicext" / "dynamicext.cpp")],
+        name="basicext",
+        sources=[str(Path(__file__).parent / "basic_ext" / "basic_ext.cpp")],
         language="c++",
         extra_compile_args=["/std:c++17"],
     )
@@ -13,7 +13,7 @@ ext_modules = [
 
 def main():
     setup(
-        name="dynamicext",
+        name="basicext",
         version="1.0.0",
         ext_modules=ext_modules,
     )

@@ -1,7 +1,7 @@
-#include "dynamicext.hpp"
+#include "basic_ext.hpp"
 #include <cstddef>
 
-namespace Python::DynamicExt
+namespace Python::BasicExtension
 {
     PyMethodDef MyInt_methods[] = {
         {"add", (PyCFunction)MyInt_add, METH_O,
@@ -155,7 +155,7 @@ namespace Python::DynamicExt
         Py_DECREF(tp);
     };
 
-    int dynamicext_exec(PyObject *module)
+    int basicext_exec(PyObject *module)
     {
         if (PyType_Ready(&MyInt_Type) < 0)
         {
@@ -169,32 +169,32 @@ namespace Python::DynamicExt
         return 0;
     };
 
-    PyModuleDef_Slot dynamicext_slots[] = {
-        {Py_mod_exec, dynamicext_exec},
+    PyModuleDef_Slot basicext_slots[] = {
+        {Py_mod_exec, basicext_exec},
         {0, nullptr},
     };
 
-    PyMethodDef dynamicext_methods[] = {
+    PyMethodDef basicext_methods[] = {
         {nullptr, nullptr},
     };
 
     PyDoc_STRVAR(module_doc, "This text is dummy document of module");
 
-    struct PyModuleDef dynamicext_module = {
+    struct PyModuleDef basicext_module = {
         PyModuleDef_HEAD_INIT,
-        "dynamicext",
+        "basicext",
         module_doc,
         0,
-        dynamicext_methods,
-        dynamicext_slots,
+        basicext_methods,
+        basicext_slots,
         nullptr,
         nullptr,
         nullptr,
     };
 
     PyMODINIT_FUNC
-    PyInit_dynamicext(void)
+    PyInit_basicext(void)
     {
-        return PyModuleDef_Init(&dynamicext_module);
+        return PyModuleDef_Init(&basicext_module);
     }
 }

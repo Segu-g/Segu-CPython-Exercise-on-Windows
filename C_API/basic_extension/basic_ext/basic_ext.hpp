@@ -1,7 +1,7 @@
 #define PY_SIZE_T_CLEAN
 #include <Python.h>
 
-namespace Python::DynamicExt
+namespace Python::BasicExtension
 {
 
     struct MyInt_Object
@@ -21,7 +21,7 @@ namespace Python::DynamicExt
 
     void MyInt_dealloc(MyInt_Object *self);
 
-    int dynamicext_exec(PyObject *module);
+    int basicext_exec(PyObject *module);
 
-    PyMODINIT_FUNC PyInit_dynamicext(void);
+    PyMODINIT_FUNC PyInit_basicext(void);
 }
