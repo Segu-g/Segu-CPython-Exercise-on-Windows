@@ -130,3 +130,6 @@ dmypy.json
 
 # vscode settings
 .vscode
+
+# third party libraries
+libraries/glfw-3.3.4.bin.WIN64
