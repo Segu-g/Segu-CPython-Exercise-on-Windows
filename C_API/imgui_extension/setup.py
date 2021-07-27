@@ -65,7 +65,13 @@ ext_modules = [
         library_dirs=library_dirs,
         libraries=libraries,
         extra_compile_args=["/std:c++17", "-DIMGUI_IMPL_OPENGL_LOADER_GL3W"],
-    )
+    ),
+    Extension(
+        name="imgui_adapter.variable",
+        sources=["imgui_adapter/variable.cpp"],
+        language="c++",
+        extra_compile_args=["/std:c++17"],
+    ),
 ]
 
 
@@ -76,7 +82,10 @@ def main():
         description="a Example ",
         packages=["imgui_adapter"],
         package_dir={"imgui_adapter": "./imgui_adapter"},
+        package_data={"imgui_adapter": ["*.pyi"]},
         ext_modules=ext_modules,
+        test_suite="tests",
+        tests_require=["pytest"],
     )
 
 

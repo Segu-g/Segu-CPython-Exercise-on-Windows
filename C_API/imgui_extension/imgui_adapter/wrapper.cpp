@@ -11,8 +11,18 @@
 
 namespace Python::ImGuiAdapter::Wrapper
 {
-    PyObject *enter_glfw_window(PyObject *self)
+    using Python::ImGuiAdapter::Variable::FloatVariable;
+
+    PyObject *
+    enter_glfw_window(PyObject *self, PyObject *arg)
     {
+        const char *title = PyUnicode_AsUTF8(arg);
+        if (title == nullptr)
+        {
+            PyErr_Format(PyExc_RuntimeError, "Cannot get text.");
+            return nullptr;
+        }
+
         glfwSetErrorCallback(
             [](int error, const char *description)
             {
@@ -30,7 +40,7 @@ namespace Python::ImGuiAdapter::Wrapper
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
 
-        GLFWwindow *window = glfwCreateWindow(1280, 720, "imgui test", nullptr, nullptr);
+        GLFWwindow *window = glfwCreateWindow(1280, 720, title, nullptr, nullptr);
         if (window == nullptr)
         {
             PyErr_Format(PyExc_RuntimeError, "Faild to create glfw window.");
@@ -181,13 +191,53 @@ namespace Python::ImGuiAdapter::Wrapper
         Py_RETURN_NONE;
     }
 
+    PyObject *enter_window(PyObject *self, PyObject *arg)
+    {
+        const char *window_name = PyUnicode_AsUTF8(arg);
+        if (window_name == nullptr)
+        {
+            PyErr_Format(PyExc_RuntimeError, "Cannot get window name.");
+            return nullptr;
+        }
+
+        ImGui::Begin(window_name);
+
+        Py_RETURN_NONE;
+    }
+
+    PyObject *exit_window(PyObject *self)
+    {
+        ImGui::End();
+        Py_RETURN_NONE;
+    }
+
+    PyObject *show_text(PyObject *self, PyObject *arg)
+    {
+        const char *text = PyUnicode_AsUTF8(arg);
+        if (text == nullptr)
+        {
+            PyErr_Format(PyExc_RuntimeError, "Cannot get text.");
+            return nullptr;
+        }
+        ImGui::Text(text);
+
+        Py_RETURN_NONE;
+    }
+
+    PyObject *show_float_slider(PyObject *self, Python::ImGuiAdapter::Variable::FloatVariable *arg)
+    {
+        ImGui::SliderFloat("float", &(arg->value), 0.0f, 1.0f);
+
+        Py_RETURN_NONE;
+    }
+
     PyModuleDef_Slot wrapper_slots[] = {
         {0, nullptr},
     };
 
     PyMethodDef wrapper_methods[] = {
-        {"enter_glfw_window", reinterpret_cast<PyCFunction>(enter_glfw_window), METH_NOARGS,
-         PyDoc_STR("enter_glfw_window: -> GLFWWindow")},
+        {"enter_glfw_window", enter_glfw_window, METH_O,
+         PyDoc_STR("enter_glfw_window: str -> GLFWWindow")},
         {"exit_glfw_window", exit_glfw_window, METH_O,
          PyDoc_STR("exit_glfw_window: GLFWWindow => None")},
         {"enter_imgui_window", enter_imgui_window, METH_O,
@@ -195,13 +245,21 @@ namespace Python::ImGuiAdapter::Wrapper
         {"exit_imgui_window", exit_imgui_window, METH_O,
          PyDoc_STR("exit_imgui_window: GLFWWindow -> None")},
         {"glfw_window_should_close", glfw_window_should_close, METH_O,
-         PyDoc_STR("glfw_window_should_close: GLFWWindow -> None")},
+         PyDoc_STR("glfw_window_should_close: GLFWWindow -> bool")},
         {"glfw_poll_events", reinterpret_cast<PyCFunction>(glfw_poll_events), METH_NOARGS,
          PyDoc_STR("glfw_poll_events: -> None")},
         {"enter_frame", reinterpret_cast<PyCFunction>(enter_frame), METH_NOARGS,
          PyDoc_STR("enter_frame: -> None")},
         {"exit_frame", exit_frame, METH_O,
          PyDoc_STR("exit_frame: GLFWWindow -> None")},
+        {"enter_window", enter_window, METH_O,
+         PyDoc_STR("enter_window: str -> None")},
+        {"exit_window", reinterpret_cast<PyCFunction>(exit_window), METH_NOARGS,
+         PyDoc_STR("exit_window: -> None")},
+        {"show_text", show_text, METH_O,
+         PyDoc_STR("show_text: str -> None")},
+        {"show_float_slider", reinterpret_cast<PyCFunction>(show_float_slider), METH_O,
+         PyDoc_STR("show_float_slider: FloatVariable -> None")},
         {nullptr, nullptr},
     };
 
