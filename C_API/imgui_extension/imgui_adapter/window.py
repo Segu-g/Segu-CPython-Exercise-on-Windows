@@ -5,12 +5,8 @@ def show_text(text: str):
     wrapper.show_text(text)
 
 
-def show_float_slider(floatv):
-    wrapper.show_float_slider(floatv)
-
-
 class Frame:
-    def __init__(self, window):
+    def __init__(self, window: wrapper.GLFWWindow):
         self.window = window
 
     def __enter__(self):

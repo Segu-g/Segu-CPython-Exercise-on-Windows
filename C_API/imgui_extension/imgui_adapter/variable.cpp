@@ -18,7 +18,7 @@ namespace Python::ImGuiAdapter::Variable
 
     PyTypeObject FloatVariable_Type = {
         PyVarObject_HEAD_INIT(nullptr, 0)                    //
-        "imgui_adapter.variable",                            // tp_name
+        "imgui_adapter.variable.FloatVariable",              // tp_name
         sizeof(FloatVariable),                               // tp_basicsize
         0,                                                   // tp_itemsize
         reinterpret_cast<destructor>(dealloc_FloatVariable), // tp_dealloc
@@ -101,7 +101,7 @@ namespace Python::ImGuiAdapter::Variable
 
     int variable_exec(PyObject *module)
     {
-        if (PyType_Ready(&FloatVariable_Type))
+        if (PyType_Ready(&FloatVariable_Type) != 0)
         {
             PyErr_SetImportError(
                 Py_BuildValue("s", "error message"),
@@ -109,6 +109,7 @@ namespace Python::ImGuiAdapter::Variable
                 Py_BuildValue("s", __FILE__));
             return -1;
         }
+
         PyModule_AddObject(
             module,
             "FloatVariable",

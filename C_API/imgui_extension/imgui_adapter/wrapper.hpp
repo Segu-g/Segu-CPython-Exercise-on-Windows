@@ -20,7 +20,9 @@ namespace Python::ImGuiAdapter::Wrapper
     PyObject *exit_window(PyObject *self);
 
     PyObject *show_text(PyObject *self, PyObject *arg);
-    PyObject *show_float_slider(PyObject *self, Python::ImGuiAdapter::Variable::FloatVariable *arg);
+    PyObject *show_float_slider(PyObject *self, PyObject *args);
+
+    PyObject *get_framerate(PyObject *self);
 
     PyMODINIT_FUNC PyInit_wrapper(void);
 }

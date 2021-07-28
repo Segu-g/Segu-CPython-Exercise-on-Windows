@@ -2,14 +2,15 @@ import imgui_adapter
 
 
 def main():
-    floatv = imgui_adapter.variable.FloatVariable(1)
-    breakpoint()
-    with imgui_adapter.window.Open("Hello") as window:
-        while not window.should_close():
-            with window.open():
+    float_array = [imgui_adapter.variable.FloatVariable(1 / (i + 1)) for i in range(100)]
+    with imgui_adapter.window.Open("Hello") as root_window:
+        while not root_window.should_close():
+            with root_window.open():
                 imgui_adapter.window.show_text("Hello!")
-                imgui_adapter.window.show_float_slider(floatv)
-            floatv.print()
+                f = imgui_adapter.wrapper.get_framerate()
+                imgui_adapter.window.show_text(f"{f}")
+                for i in range(100):
+                    imgui_adapter.wrapper.show_float_slider(f"float{i}", float_array[i])
 
 
 if __name__ == "__main__":

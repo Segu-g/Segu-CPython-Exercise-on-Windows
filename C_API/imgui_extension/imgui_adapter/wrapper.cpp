@@ -109,6 +109,7 @@ namespace Python::ImGuiAdapter::Wrapper
 
         Py_RETURN_NONE;
     }
+
     PyObject *exit_imgui_window(PyObject *self, PyObject *arg)
     {
         GLFWwindow *window = reinterpret_cast<GLFWwindow *>(PyCapsule_GetPointer(arg, "_window"));
@@ -224,16 +225,37 @@ namespace Python::ImGuiAdapter::Wrapper
         Py_RETURN_NONE;
     }
 
-    PyObject *show_float_slider(PyObject *self, Python::ImGuiAdapter::Variable::FloatVariable *arg)
+    PyObject *show_float_slider(PyObject *self, PyObject *args)
     {
-        ImGui::SliderFloat("float", &(arg->value), 0.0f, 1.0f);
+        char *label = nullptr;
+        PyObject *obj = nullptr;
+        const char *format = "sO";
+        if (!PyArg_ParseTuple(args, format, &label, &obj))
+        {
+            return nullptr;
+        }
+        PyObject *variable_module = PyImport_ImportModule("imgui_adapter.variable");
+        if (variable_module == nullptr)
+        {
+            return nullptr;
+        }
+        PyTypeObject *FloatVariable_Type = reinterpret_cast<PyTypeObject *>(PyObject_GetAttrString(variable_module, "FloatVariable"));
 
+        if (!Py_IS_TYPE(obj, FloatVariable_Type))
+        {
+            PyErr_SetString(PyExc_TypeError, FloatVariable_Type->tp_name);
+            return nullptr;
+        }
+        FloatVariable *var = reinterpret_cast<FloatVariable *>(obj);
+        ImGui::SliderFloat(label, &(var->value), 0.0f, 1.0f);
         Py_RETURN_NONE;
     }
 
-    PyModuleDef_Slot wrapper_slots[] = {
-        {0, nullptr},
-    };
+    PyObject *get_framerate(PyObject *self)
+    {
+        ImGuiIO &io = ImGui::GetIO();
+        return Py_BuildValue("f", io.Framerate);
+    }
 
     PyMethodDef wrapper_methods[] = {
         {"enter_glfw_window", enter_glfw_window, METH_O,
@@ -258,9 +280,76 @@ namespace Python::ImGuiAdapter::Wrapper
          PyDoc_STR("exit_window: -> None")},
         {"show_text", show_text, METH_O,
          PyDoc_STR("show_text: str -> None")},
-        {"show_float_slider", reinterpret_cast<PyCFunction>(show_float_slider), METH_O,
+        {"show_float_slider", reinterpret_cast<PyCFunction>(show_float_slider), METH_VARARGS,
          PyDoc_STR("show_float_slider: FloatVariable -> None")},
+        {"get_framerate", reinterpret_cast<PyCFunction>(get_framerate), METH_NOARGS,
+         "get_framerate -> float"},
         {nullptr, nullptr},
+    };
+
+    int wrapper_exec(PyObject *module)
+    {
+        PyObject *typing_module = PyImport_ImportModule("typing");
+        if (typing_module == nullptr)
+        {
+            PyErr_SetImportError(
+                Py_BuildValue("s", "error message"),
+                Py_BuildValue("s", "imgui_adapter.wrapper"),
+                Py_BuildValue("s", __FILE__));
+            return -1;
+        }
+
+        PyObject *new_type = PyObject_GetAttrString(typing_module, "NewType");
+
+        PyObject *builtins_module = PyImport_ImportModule("builtins");
+        if (builtins_module == nullptr)
+        {
+            Py_XDECREF(new_type);
+            Py_DECREF(typing_module);
+            PyErr_SetImportError(
+                Py_BuildValue("s", "error message"),
+                Py_BuildValue("s", "imgui_adapter.wrapper"),
+                Py_BuildValue("s", __FILE__));
+            return -1;
+        }
+
+        PyObject *object = PyObject_GetAttrString(builtins_module, "object");
+
+        PyObject *args_tuple = Py_BuildValue("(s, O)", "GLFWWindow", object);
+
+        PyObject *GLWFWindow_type_obj = PyObject_CallObject(new_type, args_tuple);
+
+        if (GLWFWindow_type_obj == nullptr)
+        {
+            Py_XDECREF(args_tuple);
+            Py_XDECREF(object);
+            Py_DECREF(builtins_module);
+            Py_XDECREF(new_type);
+            Py_DECREF(typing_module);
+            PyErr_SetImportError(
+                Py_BuildValue("s", "error message"),
+                Py_BuildValue("s", "imgui_adapter.wrapper"),
+                Py_BuildValue("s", __FILE__));
+            return -1;
+        }
+
+        PyModule_AddObject(
+            module,
+            "GLFWWindow",
+            GLWFWindow_type_obj);
+
+        Py_XDECREF(args_tuple);
+        Py_XDECREF(object);
+        Py_DECREF(builtins_module);
+        Py_DECREF(typing_module);
+        Py_XDECREF(new_type);
+
+        return 0;
+    }
+
+    PyModuleDef_Slot wrapper_slots[] = {
+        {Py_mod_exec, wrapper_exec},
+        {0, nullptr},
     };
 
     PyDoc_STRVAR(module_doc, "Test of C Extension in Python package.");
@@ -271,6 +360,7 @@ namespace Python::ImGuiAdapter::Wrapper
         module_doc,
         0,
         wrapper_methods,
+        wrapper_slots,
     };
 
     PyMODINIT_FUNC PyInit_wrapper(void)
